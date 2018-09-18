@@ -85,8 +85,8 @@ typedef UIView*(^YZHUIPopViewCustomContentViewBlock)(CGSize size);
  *在base的矩形中画一个等腰三角形，
  *arrowArcRadius为顶角的圆弧，
  *baseShift为底边上左右各偏移baseShift,
- *顶角的大小为alphaAngle = 2 * atan((baseSize.width/2 - baseShift)/baseSize.height)
- *底角大小为baseArcAngle = M_PI_2 - alphaAngle/2;
+ *顶角的大小为topAngle = 2 * atan((baseSize.width/2 - baseShift)/baseSize.height)
+ *底角大小为baseArcAngle = M_PI_2 - topAngle/2;
  *baseAngelArcRadius为baseShift / tan(baseArcAngle/2);
  */
 -(instancetype)initWithBaseSize:(CGSize)baseSize baseShift:(CGFloat)baseShift arrowArcRadius:(CGFloat)arrowArcRadius;
@@ -95,12 +95,13 @@ typedef UIView*(^YZHUIPopViewCustomContentViewBlock)(CGSize size);
  *在base的矩形中画一个等腰三角形，
  *arrowArcRadius为顶角的圆弧，
  *baseShift为底边上左右各偏移baseShift,
- *顶角的大小为alphaAngle = arrowRadian
- *底边的大小为baseWidth = 2 * (baseHeight * tan(alphaAngle/2) + baseShift);
+ *顶角的大小为topAngle = arrowRadian
+ *底边的大小为baseWidth = 2 * (baseHeight * tan(arrowRadian/2) + baseShift);
  */
 -(instancetype)initWithBaseHeight:(CGFloat)baseHeight baseShift:(CGFloat)baseShift arrowRadian:(CGFloat)arrowRadian arrowArcRadius:(CGFloat)arrowArcRadius;
 
 -(UIBezierPath*)bezierPathForArrowDirection:(YZHUIPopViewArrowDirection)arrowDirection;
+
 @end
 
 
@@ -114,8 +115,15 @@ typedef UIView*(^YZHUIPopViewCustomContentViewBlock)(CGSize size);
 /* popContent的类型 */
 @property (nonatomic, assign) YZHUIPopViewContentType contentType;
 
+
+/*
+ *effectView是指底层带有灰色的view
+ */
 @property (nonatomic, strong, readonly) UIButton *cover;
 
+/*
+ *effectView是指带有毛玻璃效果的view
+ */
 @property (nonatomic, strong, readonly) UIView *effectView;
 
 /*
@@ -130,7 +138,7 @@ typedef UIView*(^YZHUIPopViewCustomContentViewBlock)(CGSize size);
  */
 @property (nonatomic, strong, readonly) UICollectionView *collectionView;
 /*
- *需要制定collectionView的UICollectionViewLayout属性
+ *需要指定collectionView的UICollectionViewLayout属性
  */
 @property (nonatomic, strong) UICollectionViewLayout *collectionViewLayout;
 /*
@@ -138,6 +146,21 @@ typedef UIView*(^YZHUIPopViewCustomContentViewBlock)(CGSize size);
  *此时customContentViewBlock返回的UIView
  */
 @property (nonatomic, weak, readonly) UIView *customContentView;
+
+/*
+ *borderLayer
+ */
+@property (nonatomic, strong, readonly) CAShapeLayer *borderLayer;
+
+/*
+ *指定border的width
+ */
+@property (nonatomic, assign) CGFloat borderWidth;
+
+/*
+ *指定border的color
+ */
+@property (nonatomic, strong) UIColor *borderColor;
 
 //设置delegate
 @property (nonatomic, weak) id<YZHUIPopViewDelegate> delegate;
@@ -150,6 +173,9 @@ typedef UIView*(^YZHUIPopViewCustomContentViewBlock)(CGSize size);
 
 /* default is 5.0 */
 @property (nonatomic, assign) CGFloat contentCornerRadius;
+
+/* innerContent的backgroundColor */
+@property (nonatomic, strong) UIColor *innerBackgroundColor;
 
 /*注意，设置等腰三角行（△）的信息，
  *默认为：
@@ -187,8 +213,6 @@ typedef UIView*(^YZHUIPopViewCustomContentViewBlock)(CGSize size);
 -(void)popViewShowInView:(UIView*)showInView animated:(BOOL)animated;
 
 -(void)popViewFromOverView:(UIView*)overView showInView:(UIView*)showInView animated:(BOOL)animated;
-
-//-(UIBezierPath*)bezierPath;
 
 -(void)dismiss;
 

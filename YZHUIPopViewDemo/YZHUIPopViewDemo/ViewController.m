@@ -28,14 +28,16 @@
 {
     CGFloat w = 200;
     CGFloat h = 80;
-    CGFloat x = (SCREEN_WIDTH - w)/2;
-    CGFloat y = 100;
+    CGFloat x = (SCREEN_WIDTH - w)/2;//SCREEN_WIDTH - 100;//(SCREEN_WIDTH - w)/2;
+    CGFloat y = 100;//600;
     self.button = [UIButton buttonWithType:UIButtonTypeCustom];
     self.button.frame = CGRectMake(x, y, w, h);
     self.button.backgroundColor = PURPLE_COLOR;
     [self.button addTarget:self action:@selector(_action:) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:self.button];
-//    self.view.backgroundColor = RED_COLOR;
+    
+    self.view.backgroundColor = ORANGE_COLOR;
+
 }
 
 -(void)_action:(UIButton*)sender
@@ -43,8 +45,21 @@
     CGSize size = CGSizeMake(200, 600);
     YZHUIPopView *popView = [[YZHUIPopView alloc] initWithPopContentSize:size fromOverView:sender showInView:nil];
 //    popView.contentType = YZHUIPopViewContentTypeTableView;
-    popView.backgroundColor = WHITE_COLOR;
-    popView.effectView.alpha = 1.0;
+    popView.backgroundColor = CLEAR_COLOR;
+    popView.innerBackgroundColor = PURPLE_COLOR;
+    popView.arrowDirection = YZHUIPopViewArrowDirectionUp;//YZHUIPopViewArrowDirectionDown;
+//    popView.effectView.alpha = 1.0;
+    
+    popView.borderWidth = 5;
+    popView.borderColor = RED_COLOR;
+    
+//    popView.arrowCtx.arrowArcRadius = 0;
+    
+    popView.arrowCtx.baseSize = CGSizeMake(30, 15);
+    popView.arrowCtx.arrowRadian = M_PI_2;
+    popView.arrowCtx.arrowArcRadius = 0;
+//    popView.arrowCtx = [[YZHPopArrowContext alloc] initWithBaseHeight:<#(CGFloat)#> baseShift:<#(CGFloat)#> arrowRadian:<#(CGFloat)#> arrowArcRadius:<#(CGFloat)#>]
+    
     popView.delegate = self;
     [popView popViewShow:YES];
 }

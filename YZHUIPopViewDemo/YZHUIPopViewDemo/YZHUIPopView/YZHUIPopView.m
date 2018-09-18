@@ -13,6 +13,8 @@
 static CGFloat popActionFullScore_s     = 100.0;
 static NSTimeInterval animationTimeInterval_s = 0.2;
 
+#define IS_ARROW_DIRECTION_HORIZONTAL(ARROW_DIR)    (ARROW_DIR == YZHUIPopViewArrowDirectionUp || ARROW_DIR == YZHUIPopViewArrowDirectionDown)
+#define IS_ARROW_DIRECTION_VERTICAL(ARROW_DIR)      (ARROW_DIR == YZHUIPopViewArrowDirectionLeft || ARROW_DIR == YZHUIPopViewArrowDirectionRight)
 
 typedef NS_ENUM(NSInteger, NSPopActionType)
 {
@@ -84,6 +86,49 @@ typedef NS_ENUM(NSInteger, NSPopActionType)
     return x;
 }
 
++(CGFloat)getBaseShiftWithBaseSize:(CGSize)baseSize topAngleRadian:(CGFloat)topAngleRadian
+{
+    CGFloat baseWidth = baseSize.width;
+    CGFloat baseHeight = baseSize.height;
+    
+    CGFloat w = baseWidth/2;
+    CGFloat h = baseHeight;
+    CGFloat topAngleMaxRadian = 2 * atan(w/h);
+    
+    if (topAngleRadian <= 0 || topAngleRadian > topAngleMaxRadian) {
+        return -1;
+    }
+    
+    CGFloat alphaAngleRadian = topAngleRadian/2;
+    
+    CGFloat baseShift = w - h * tan(alphaAngleRadian);
+    return baseShift;
+}
+
++(CGFloat)getTopAngleRadianWithBaseSize:(CGSize)baseSize baseShift:(CGFloat)baseShift
+{
+    CGFloat baseWidth = baseSize.width;
+    CGFloat baseHeight = baseSize.height;
+    if (baseShift > baseWidth/2) {
+        return 0;
+    }
+    CGFloat alphaAngleRadian = M_PI_2;
+    if (baseHeight > 0) {
+        alphaAngleRadian = atan((baseWidth/2 - baseShift)/baseHeight);
+    }
+    CGFloat topAngleRadian = 2 * alphaAngleRadian;
+    return topAngleRadian;
+}
+
+
++(CGFloat)getBaseAngleArcRadiusWithBaseSize:(CGSize)baseSize baseShift:(CGFloat)baseShift
+{
+    CGFloat topAngleRadian = [self getTopAngleRadianWithBaseSize:baseSize baseShift:baseShift];
+    CGFloat baseAngleRadian = (M_PI_2 - topAngleRadian/2)/2;
+    CGFloat baseAngleArcRadius = baseShift / tan(baseAngleRadian/2);
+    return baseAngleArcRadius;
+}
+
 +(UIBezierPath*)_createIsoscelesTrianglePathWithBaseSize:(CGSize)baseSize topArcRadius:(CGFloat)topArcRadius baseShift:(CGFloat)baseShift topAngleDirection:(YZHUIPopViewArrowDirection)direction
 {
     if (direction <= YZHUIPopViewArrowDirectionAny || direction > YZHUIPopViewArrowDirectionRight) {
@@ -105,21 +150,25 @@ typedef NS_ENUM(NSInteger, NSPopActionType)
     CGFloat topShiftX = sideLen * sin(alphaAngle);
     CGFloat topShiftY = sideLen * cos(alphaAngle);
     
-    CGFloat topHalfArcAngle = M_PI_2 - alphaAngle;
+    CGFloat diffAngle = 0.0001;
+    CGFloat topHalfArcAngle = M_PI_2 - alphaAngle + diffAngle;
     
     CGFloat topAngleArcRadiusShift = topArcRadius / sin(alphaAngle);
     
-    CGFloat lastLinePointX = baseWidth - baseShift - baseShift * cos(baseArcAngle);
+    CGFloat lastLinePointX = baseWidth - baseAngelArcRadius * sin(baseArcAngle);
+//    CGFloat lastLinePointX = baseWidth - baseShift - baseShift * cos(baseArcAngle);
     CGFloat lastLinePointY = baseShift * sin(baseArcAngle);
-    
     
     CGPoint arcCenter = CGPointMake(0, h - baseAngelArcRadius);
     UIBezierPath *path = [UIBezierPath bezierPath];
+    
+    CGFloat x = 0;
+    CGFloat y = 0;
     if (direction == YZHUIPopViewArrowDirectionUp) {
         [path addArcWithCenter:arcCenter radius:baseAngelArcRadius startAngle:M_PI_2 endAngle:M_PI_2 - baseArcAngle clockwise:NO];
         
-        CGFloat x = w - topShiftX;
-        CGFloat y = topShiftY;
+        x = w - topShiftX;
+        y = topShiftY;
         [path addLineToPoint:CGPointMake(x, y)];
         
         x = w;
@@ -132,14 +181,13 @@ typedef NS_ENUM(NSInteger, NSPopActionType)
         
         arcCenter = CGPointMake(baseWidth, h - baseAngelArcRadius);
         [path addArcWithCenter:arcCenter radius:baseAngelArcRadius startAngle:M_PI_2 + baseArcAngle endAngle:M_PI_2 clockwise:NO];
-        
     }
     else if (direction == YZHUIPopViewArrowDirectionLeft) {
         arcCenter = CGPointMake(h - baseAngelArcRadius, 0);
         [path addArcWithCenter:arcCenter radius:baseAngelArcRadius startAngle:0 endAngle:baseArcAngle clockwise:YES];
         
-        CGFloat x = topShiftY;
-        CGFloat y = w - topShiftX;
+        x = topShiftY;
+        y = w - topShiftX;
         [path addLineToPoint:CGPointMake(x, y)];
         
         x = topAngleArcRadiusShift;
@@ -157,8 +205,8 @@ typedef NS_ENUM(NSInteger, NSPopActionType)
         arcCenter = CGPointMake(0, baseAngelArcRadius);
         [path addArcWithCenter:arcCenter radius:baseAngelArcRadius startAngle:3 * M_PI_2 endAngle:3 * M_PI_2 + baseArcAngle clockwise:YES];
         
-        CGFloat x = w - topShiftX;
-        CGFloat y = h - topShiftY;
+        x = w - topShiftX;
+        y = h - topShiftY;
         [path addLineToPoint:CGPointMake(x, y)];
         
         x = w;
@@ -176,8 +224,8 @@ typedef NS_ENUM(NSInteger, NSPopActionType)
         arcCenter = CGPointMake(baseAngelArcRadius, 0);
         [path addArcWithCenter:arcCenter radius:baseAngelArcRadius startAngle:M_PI endAngle:M_PI- baseArcAngle clockwise:NO];
         
-        CGFloat x = h - topShiftY;
-        CGFloat y = w - topShiftX;
+        x = h - topShiftY;
+        y = w - topShiftX;
         [path addLineToPoint:CGPointMake(x, y)];
         
         x = h - topAngleArcRadiusShift;
@@ -211,21 +259,10 @@ typedef NS_ENUM(NSInteger, NSPopActionType)
     if (direction <= YZHUIPopViewArrowDirectionAny || direction > YZHUIPopViewArrowDirectionRight) {
         return nil;
     }
-    
-    CGFloat baseWidth = baseSize.width;
-    CGFloat baseHeight = baseSize.height;
-    
-    CGFloat w = baseWidth/2;
-    CGFloat h = baseHeight;
-    CGFloat topAngleMaxRadian = 2 * atan(w/h);
-    
-    if (topAngleRadian <= 0 || topAngleRadian > topAngleMaxRadian) {
+    CGFloat baseShift = [YZHPopArrowContext getBaseShiftWithBaseSize:baseSize topAngleRadian:topAngleRadian];
+    if (baseShift < 0) {
         return nil;
     }
-    
-    CGFloat alphaAngleRadian = topAngleRadian/2;
-    
-    CGFloat baseShift = w - h * tan(alphaAngleRadian);
     
     return [YZHPopArrowContext _createIsoscelesTrianglePathWithBaseSize:baseSize topArcRadius:topArcRadius baseShift:baseShift topAngleDirection:direction];
 }
@@ -244,21 +281,6 @@ typedef NS_ENUM(NSInteger, NSPopActionType)
     CGSize baseSize = CGSizeMake(baseWidth, baseHeight);
     
     return [YZHPopArrowContext _createIsoscelesTrianglePathWithBaseSize:baseSize topArcRadius:topArcRadius baseShift:baseShift topAngleDirection:direction];
-}
-
-+(CGFloat)getTopAngleRadianWithBaseSize:(CGSize)baseSize baseShift:(CGFloat)baseShift
-{
-    CGFloat baseWidth = baseSize.width;
-    CGFloat baseHeight = baseSize.height;
-    if (baseShift > baseWidth/2) {
-        return 0;
-    }
-    CGFloat alphaAngleRadian = M_PI_2;
-    if (baseHeight > 0) {
-        alphaAngleRadian = atan((baseWidth/2 - baseShift)/baseHeight);
-    }
-    CGFloat topAngleRadian = 2 * alphaAngleRadian;
-    return topAngleRadian;
 }
 
 /*
@@ -334,6 +356,12 @@ typedef NS_ENUM(NSInteger, NSPopActionType)
 {
     return [YZHPopArrowContext createIsoscelesTrianglePathWithBaseSize:self.baseSize topArcRadius:self.arrowArcRadius topAngleRadian:self.arrowRadian topAngleDirection:arrowDirection];
 }
+
+-(CGFloat)baseAngleArcRadius
+{
+    CGFloat baseShift = [YZHPopArrowContext getBaseShiftWithBaseSize:self.baseSize topAngleRadian:self.arrowRadian];
+    return [YZHPopArrowContext getBaseAngleArcRadiusWithBaseSize:self.baseSize baseShift:baseShift];
+}
 @end
 
 
@@ -362,7 +390,13 @@ typedef NS_ENUM(NSInteger, NSPopActionType)
 //当时的arrow的frame
 @property (nonatomic, assign) CGRect popViewFrame;
 
+/* <#注释#> */
+@property (nonatomic, strong) YZHPopArrowContext *arrowCtx;
+
+/* <#name#> */
+@property (nonatomic, assign) CGFloat contentCornerRadius;
 @end
+
 @implementation YZHPopActionContext
 -(NSString*)description
 {
@@ -379,16 +413,13 @@ typedef NS_ENUM(NSInteger, NSPopActionType)
 
 @property (nonatomic, weak) UIView *showInView;
 
-@property (nonatomic, strong) UIView *popContentView;
+@property (nonatomic, strong) UIView *innerContentView;
 
 //对应的路径
-@property (nonatomic, strong) UIBezierPath *bezierPath;
+//@property (nonatomic, strong) UIBezierPath *bezierPath;
 
 //每个操作对应要扣除的分数
 @property (nonatomic, copy) NSDictionary<NSNumber*, NSNumber*> *actionTypeInfos;
-
-/* <#name#> */
-@property (nonatomic, assign) CGFloat borderWidth;
 
 @end
 
@@ -462,7 +493,7 @@ typedef NS_ENUM(NSInteger, NSPopActionType)
         else
         {
             UIToolbar *toolBar = [[UIToolbar alloc] init];
-            toolBar.barStyle = UIBarStyleDefault;
+            toolBar.barStyle = UIBarStyleBlack;
             _effectView = toolBar;
         }
     }
@@ -489,6 +520,8 @@ typedef NS_ENUM(NSInteger, NSPopActionType)
     [infos setObject:@(40.0) forKey:@(NSPopActionTypeArrowNotIn)];
     [infos setObject:@(10.0) forKey:@(NSPopActionTypeArrowNotPointCenter)];
     self.actionTypeInfos = infos;
+    
+    self.innerBackgroundColor = CLEAR_COLOR;
 }
 
 -(void)_setupChildView
@@ -496,10 +529,14 @@ typedef NS_ENUM(NSInteger, NSPopActionType)
     [self addSubview:self.effectView];
     self.backgroundColor = WHITE_COLOR;
     
-    UIView *popContentView = [UIView new];
-    popContentView.backgroundColor = CLEAR_COLOR;
-    [self addSubview:popContentView];
-    self.popContentView = popContentView;
+    CAShapeLayer *borderLayer = [CAShapeLayer new];
+    [self.layer addSublayer:borderLayer];
+    _borderLayer = borderLayer;
+    
+    UIView *innerContentView = [UIView new];
+    innerContentView.backgroundColor = self.innerBackgroundColor;
+    [self addSubview:innerContentView];
+    self.innerContentView = innerContentView;
 }
 
 -(void)_coverClickAction:(UIButton*)sender
@@ -711,9 +748,10 @@ typedef NS_ENUM(NSInteger, NSPopActionType)
     for (NSNumber *arrowDirectionValue in self.arrowDirectionPriorityOrder) {
         YZHUIPopViewArrowDirection arrowDirection = [arrowDirectionValue integerValue];
         
-        popContentSize = [self _getContentSizeForArrowDirection:arrowDirection popOverRect:self.popOverRect popContentSize:popContentSize showInViewSize:showInViewSize];
+        CGSize popContentSizeTmp = [self _getContentSizeForArrowDirection:arrowDirection popOverRect:self.popOverRect popContentSize:popContentSize showInViewSize:showInViewSize];
 
-        YZHPopActionContext *ctx = [self _getPopActionContextForArrowDirection:arrowDirection popContentSize:popContentSize popOverRect:self.popOverRect showInViewSize:showInViewSize];
+        NSLog(@"popContentSizeTmp=%@,contentSize=%@",NSStringFromCGSize(popContentSizeTmp),NSStringFromCGSize(popContentSize));
+        YZHPopActionContext *ctx = [self _getPopActionContextForArrowDirection:arrowDirection popContentSize:popContentSizeTmp popOverRect:self.popOverRect showInViewSize:showInViewSize];
         if (ctxMax == nil) {
             ctxMax = ctx;
         }
@@ -744,15 +782,13 @@ typedef NS_ENUM(NSInteger, NSPopActionType)
     if (arrowDirection == YZHUIPopViewArrowDirectionAny) {
         return CGSizeZero;
     }
-
-//    CGSize contentSize = self.popContentSize;
     
 //    CGFloat x = popOverRect.origin.x;
     CGFloat y = popOverRect.origin.y;
 //    CGFloat maxX = CGRectGetMaxX(popOverRect);
     CGFloat maxY = CGRectGetMaxY(popOverRect);
     
-    CGFloat topSpace = showInViewSize.height - y - self.popViewEdgeInsets.top;
+    CGFloat topSpace = y - self.popViewEdgeInsets.top;
 //    CGFloat leftSpace = showInViewSize.width - x - self.popViewEdgeInsets.left;
     CGFloat bottomSpace = showInViewSize.height - maxY - self.popViewEdgeInsets.bottom;
 //    CGFloat rightSpace = showInViewSize.width - maxX - self.popViewEdgeInsets.right;
@@ -767,6 +803,9 @@ typedef NS_ENUM(NSInteger, NSPopActionType)
             NSIndexPath *indexPath = [NSIndexPath indexPathForRow:i inSection:0];
             CGFloat height = [self.tableView.delegate tableView:self.tableView heightForRowAtIndexPath:indexPath];
             tableViewHeight += height;
+        }
+        if (tableViewHeight > 0) {
+            tableViewHeight += 2 * self.borderWidth;
         }
     }
     
@@ -789,8 +828,10 @@ typedef NS_ENUM(NSInteger, NSPopActionType)
         }
         else if (self.contentType == YZHUIPopViewContentTypeCollectionView) {
             [self.collectionView.collectionViewLayout prepareLayout];
-            width = MIN(width, self.collectionView.collectionViewLayout.collectionViewContentSize.width);
-            height = MIN(height, self.collectionView.collectionViewLayout.collectionViewContentSize.height);
+            CGFloat cW = self.collectionView.collectionViewLayout.collectionViewContentSize.width + 2 * self.borderWidth;
+            CGFloat cH = self.collectionView.collectionViewLayout.collectionViewContentSize.height + 2 * self.borderWidth;
+            width = MIN(width, cW);
+            height = MIN(height, cH);
         }
     }
     else if (arrowDirection == YZHUIPopViewArrowDirectionLeft || arrowDirection == YZHUIPopViewArrowDirectionRight) {
@@ -803,8 +844,11 @@ typedef NS_ENUM(NSInteger, NSPopActionType)
         }
         else if (self.contentType == YZHUIPopViewContentTypeCollectionView) {
             [self.collectionView.collectionViewLayout prepareLayout];
-            width = MIN(width, self.collectionView.collectionViewLayout.collectionViewContentSize.width);
-            height = MIN(height, self.collectionView.collectionViewLayout.collectionViewContentSize.height);
+            CGFloat cW = self.collectionView.collectionViewLayout.collectionViewContentSize.width + 2 * self.borderWidth;
+            CGFloat cH = self.collectionView.collectionViewLayout.collectionViewContentSize.height + 2 * self.borderWidth;
+            
+            width = MIN(width, cW);
+            height = MIN(height, cH);
         }
     }
     return CGSizeMake(width, height);
@@ -817,9 +861,9 @@ typedef NS_ENUM(NSInteger, NSPopActionType)
     [self.showInView insertSubview:self.cover belowSubview:self];
 }
 
--(void)_setupPopContentView:(CGSize)contentSize
+-(void)_setupInnerContentView:(CGSize)popContentSize
 {
-    [self.popContentView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
+    [self.innerContentView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
     if (self.contentType == YZHUIPopViewContentTypeTableView) {
         UITableView *tableView = [[UITableView alloc] initWithFrame:CGRectZero style:UITableViewStylePlain];
         tableView.bounces = NO;
@@ -830,7 +874,7 @@ typedef NS_ENUM(NSInteger, NSPopActionType)
         tableView.showsHorizontalScrollIndicator = NO;
         tableView.tableFooterView = [UIView new];
         _tableView = tableView;
-        [self.popContentView addSubview:tableView];
+        [self.innerContentView addSubview:tableView];
         [self.tableView registerClass:[YZHUIPopTableViewCell class] forCellReuseIdentifier:NSSTRING_FROM_CLASS(YZHUIPopTableViewCell)];
     }
     else if (self.contentType == YZHUIPopViewContentTypeCollectionView) {
@@ -842,71 +886,366 @@ typedef NS_ENUM(NSInteger, NSPopActionType)
         collectionView.showsVerticalScrollIndicator = NO;
         collectionView.showsHorizontalScrollIndicator = NO;
         _collectionView = collectionView;
-        [self.popContentView addSubview:collectionView];
+        [self.innerContentView addSubview:collectionView];
         [self.collectionView registerClass:[YZHUIPopCollectionViewCell class] forCellWithReuseIdentifier:NSSTRING_FROM_CLASS(YZHUIPopCollectionViewCell)];
     }
     else if (self.contentType == YZHUIPopViewContentTypeCustom) {
         if (self.customContentViewBlock) {
-            _customContentView = self.customContentViewBlock(contentSize);
-            _customContentView.frame = CGRectMake(0, 0, contentSize.width, contentSize.height);
+            CGRect innerContentFrame = CGRectInset(CGRectMake(0, 0, popContentSize.width, popContentSize.height), self.borderWidth, self.borderWidth);
+            _customContentView = self.customContentViewBlock(innerContentFrame.size);
+            _customContentView.frame = innerContentFrame;
             _customContentView.backgroundColor = CLEAR_COLOR;
-            [self.popContentView addSubview:_customContentView];
+            [self.innerContentView addSubview:_customContentView];
         }
     }
 }
 
--(void)_setuplayoutValue:(CGSize)contentSize
+-(void)_setuplayoutValue:(CGSize)popContentSize
 {
     [self _setupCover];
-    [self _setupPopContentView:contentSize];
+    [self _setupInnerContentView:popContentSize];
 }
 
--(void)_updatePopcontentView:(YZHPopActionContext*)ctx
+-(CGRect)_getInnerArrowFrameWithArrowCtx:(YZHPopActionContext*)ctx borderWidth:(CGFloat)borderWidth
+{
+    CGFloat alphaAngleRadian = ctx.arrowCtx.arrowRadian/2;
+    
+    CGFloat topShift = self.borderWidth/sin(alphaAngleRadian);
+    
+    CGFloat baseArcRadius = [ctx.arrowCtx baseAngleArcRadius];
+    
+    CGFloat arrowBaseWidth = ctx.arrowCtx.baseSize.width;
+    CGFloat arrowBaseHeight = ctx.arrowCtx.baseSize.height + borderWidth - topShift;
+
+    CGRect innerArrowFrame = {ctx.arrowFrame.origin,arrowBaseWidth,arrowBaseHeight};
+    if (baseArcRadius > borderWidth) {
+        if (IS_ARROW_DIRECTION_HORIZONTAL(ctx.arrowDirection)) {
+            innerArrowFrame.origin.x -= borderWidth;
+            innerArrowFrame.origin.y = 0;
+        }
+        else {
+            innerArrowFrame.origin.x = 0;
+            innerArrowFrame.origin.y -= borderWidth;
+        }
+    }
+    else {
+        CGFloat decBaseWidth = borderWidth * tan((M_PI_2 - alphaAngleRadian)/2);
+        arrowBaseWidth = ctx.arrowFrame.size.width - 2  * decBaseWidth;
+        innerArrowFrame.size = CGSizeMake(arrowBaseWidth, arrowBaseHeight);
+        if (IS_ARROW_DIRECTION_HORIZONTAL(ctx.arrowDirection)) {
+            innerArrowFrame.origin = CGPointMake(innerArrowFrame.origin.x + decBaseWidth - borderWidth, 0);
+        }
+        else {
+            innerArrowFrame.origin = CGPointMake(0, innerArrowFrame.origin.y + decBaseWidth - borderWidth);
+        }
+    }
+    return innerArrowFrame;
+}
+
+-(YZHPopActionContext*)_getInnerCtxWithCtx:(YZHPopActionContext*)ctx borderWidth:(CGFloat)borderWidth
+{
+    YZHPopActionContext *innerCtx = [[YZHPopActionContext alloc] init];
+    
+    CGFloat alphaAngleRadian = ctx.arrowCtx.arrowRadian/2;
+    
+    //三角形减少的高度
+    CGFloat diffArrowBaseHeight = borderWidth/sin(alphaAngleRadian);
+    
+    CGFloat diffWidth = 2 * borderWidth;
+    CGFloat diffHeight = borderWidth + diffArrowBaseHeight;
+    
+    CGSize ctxPopViewSize = ctx.popViewFrame.size;
+    
+    CGFloat innerCWidth = ctx.popContentSize.width - diffWidth;
+    CGFloat innerCHeight = ctx.popContentSize.height - diffWidth;
+    
+    CGFloat arrowArcRadius = MAX(ctx.arrowCtx.arrowRadian - diffArrowBaseHeight, 0);
+    
+    innerCtx.arrowDirection = ctx.arrowDirection;
+    innerCtx.popContentSize = CGSizeMake(innerCWidth, innerCHeight);
+    
+    CGRect popViewFrame = CGRectZero;
+    if (ctx.arrowDirection == YZHUIPopViewArrowDirectionUp) {
+        popViewFrame = CGRectMake(borderWidth, diffArrowBaseHeight, ctxPopViewSize.width - diffWidth, ctxPopViewSize.height - diffHeight);
+    }
+    else if (ctx.arrowDirection == YZHUIPopViewArrowDirectionLeft) {
+        popViewFrame = CGRectMake(diffArrowBaseHeight, borderWidth, ctxPopViewSize.width - diffHeight, ctxPopViewSize.height - diffWidth);
+    }
+    else if (ctx.arrowDirection == YZHUIPopViewArrowDirectionDown) {
+        popViewFrame = CGRectMake(borderWidth, borderWidth, ctxPopViewSize.width - diffWidth, ctxPopViewSize.height - diffHeight);
+    }
+    else if (ctx.arrowDirection == YZHUIPopViewArrowDirectionRight) {
+        popViewFrame = CGRectMake(borderWidth, borderWidth, ctxPopViewSize.width - diffHeight, ctxPopViewSize.height - diffWidth);
+    }
+    innerCtx.popViewFrame = popViewFrame;
+    innerCtx.arrowFrame = [self _getInnerArrowFrameWithArrowCtx:ctx borderWidth:borderWidth];
+    
+    innerCtx.arrowCtx = [[YZHPopArrowContext alloc] initWithBaseSize:innerCtx.arrowFrame.size arrowRadian:ctx.arrowCtx.arrowRadian arrowArcRadius:arrowArcRadius];
+    
+    innerCtx.contentCornerRadius = MAX(ctx.contentCornerRadius - borderWidth, 0);
+    
+    return innerCtx;
+}
+
+-(UIBezierPath *)_getBorderPath:(YZHPopActionContext*)ctx borderWidth:(CGFloat)borderWidth cornerRadius:(CGFloat)cornerRadius arrowTransform:(CGAffineTransform)arrowTransform
+{
+    UIBezierPath *borderPath = [UIBezierPath bezierPath];
+    
+    CGSize arrowBaseSize = ctx.arrowCtx.baseSize;
+    
+    CGFloat halfBorderWidth = borderWidth/2;
+    
+    UIBezierPath *arrowPath = [ctx.arrowCtx bezierPathForArrowDirection:ctx.arrowDirection];
+    CGPathRef arrowCGPath = CGPathCreateCopyByStrokingPath(arrowPath.CGPath, NULL, borderWidth, kCGLineCapButt, kCGLineJoinMiter, 0);
+    UIBezierPath *arrowBorderPath = [UIBezierPath bezierPathWithCGPath:arrowCGPath];
+    [arrowBorderPath applyTransform:arrowTransform];
+    CGPathRelease(arrowCGPath);
+    
+    CGFloat x = cornerRadius;
+    CGFloat y = arrowBaseSize.height + halfBorderWidth;
+    
+    //画三角圆弧
+    [borderPath appendPath:arrowBorderPath];
+    if (ctx.arrowDirection == YZHUIPopViewArrowDirectionUp) {
+        //画右上边横
+        x = CGRectGetMaxX(ctx.arrowFrame);
+        [borderPath moveToPoint:CGPointMake(x, y)];
+        
+        x = ctx.popContentSize.width - cornerRadius;
+//        [borderPath addLineToPoint:CGPointMake(x, y)];
+        
+        //画右上圆弧
+        y = arrowBaseSize.height + cornerRadius;
+        [borderPath addArcWithCenter:CGPointMake(x, y) radius:cornerRadius - halfBorderWidth startAngle:-M_PI_2 endAngle:0 clockwise:YES];
+        
+        //画右边竖线
+        y = ctx.popViewFrame.size.height - cornerRadius;
+//        [borderPath addLineToPoint:CGPointMake(x, y)];
+        
+        //画右下弧度
+        x = ctx.popContentSize.width - cornerRadius;
+        [borderPath addArcWithCenter:CGPointMake(x, y) radius:cornerRadius - halfBorderWidth startAngle:0 endAngle:M_PI_2 clockwise:YES];
+        
+        //画下边横线，终点
+        x = cornerRadius;
+//        [borderPath addLineToPoint:CGPointMake(x, y)];
+        
+        //画左下弧度
+        y = ctx.popViewFrame.size.height - cornerRadius;
+        [borderPath addArcWithCenter:CGPointMake(x, y) radius:cornerRadius - halfBorderWidth startAngle:M_PI_2 endAngle:M_PI clockwise:YES];
+        
+        //画左边终点
+        y = arrowBaseSize.height + cornerRadius;
+//        [borderPath addLineToPoint:CGPointMake(x, y)];
+        
+        //画左上弧度
+        x = cornerRadius;
+        [borderPath addArcWithCenter:CGPointMake(x, y) radius:cornerRadius - halfBorderWidth startAngle:M_PI endAngle:-M_PI_2 clockwise:YES];
+
+        //画左上边横，终点
+        x = ctx.arrowFrame.origin.x;
+        y = arrowBaseSize.height + halfBorderWidth;
+        [borderPath addLineToPoint:CGPointMake(x, y)];
+    }
+    else if (ctx.arrowDirection == YZHUIPopViewArrowDirectionLeft) {
+        x = arrowBaseSize.height + halfBorderWidth;
+        y = ctx.arrowFrame.origin.y;
+        [borderPath moveToPoint:CGPointMake(x, y)];
+        
+        y = cornerRadius;
+        [borderPath addLineToPoint:CGPointMake(x, y)];
+        
+        x = arrowBaseSize.height + cornerRadius;
+        [borderPath addArcWithCenter:CGPointMake(x, y) radius:cornerRadius - halfBorderWidth startAngle:M_PI endAngle:-M_PI_2 clockwise:YES];
+        
+        x = ctx.popViewFrame.size.width - cornerRadius;
+//        [borderPath addLineToPoint:CGPointMake(x, y)];
+        
+        [borderPath addArcWithCenter:CGPointMake(x, y) radius:cornerRadius - halfBorderWidth startAngle:-M_PI_2 endAngle:0 clockwise:YES];
+        
+        y = ctx.popViewFrame.size.height - cornerRadius;
+//        [borderPath addLineToPoint:CGPointMake(x, y)];
+        
+        [borderPath addArcWithCenter:CGPointMake(x, y) radius:cornerRadius - halfBorderWidth startAngle:0 endAngle:M_PI_2 clockwise:YES];
+        
+        x = arrowBaseSize.height + cornerRadius;
+//        [borderPath addLineToPoint:CGPointMake(x, y)];
+        
+        [borderPath addArcWithCenter:CGPointMake(x, y) radius:cornerRadius - halfBorderWidth startAngle:M_PI_2 endAngle:M_PI clockwise:YES];
+        
+        x = arrowBaseSize.height + halfBorderWidth;
+        y = ctx.arrowFrame.origin.y + ctx.arrowCtx.baseSize.width;
+        [borderPath addLineToPoint:CGPointMake(x, y)];
+    }
+    else if (ctx.arrowDirection == YZHUIPopViewArrowDirectionDown) {
+        x = ctx.arrowFrame.origin.x;
+        y = ctx.popViewFrame.size.height - arrowBaseSize.height - halfBorderWidth;
+        [borderPath moveToPoint:CGPointMake(x, y)];
+        
+        x = cornerRadius;
+        [borderPath addLineToPoint:CGPointMake(x, y)];
+        
+        y = ctx.popContentSize.height - cornerRadius;
+        [borderPath addArcWithCenter:CGPointMake(x, y) radius:cornerRadius - halfBorderWidth startAngle:M_PI_2 endAngle:M_PI clockwise:YES];
+        
+//        x = halfBorderWidth;
+        y = cornerRadius;
+//        [borderPath addLineToPoint:CGPointMake(x, y)];
+        
+        x = cornerRadius;
+        [borderPath addArcWithCenter:CGPointMake(x, y) radius:cornerRadius - halfBorderWidth startAngle:M_PI endAngle:-M_PI_2 clockwise:YES];
+        
+        x = ctx.popContentSize.width - cornerRadius;
+//        y = halfBorderWidth;
+//        [borderPath addLineToPoint:CGPointMake(x, y)];
+        
+        y = cornerRadius;
+        [borderPath addArcWithCenter:CGPointMake(x, y) radius:cornerRadius - halfBorderWidth startAngle:-M_PI_2 endAngle:0 clockwise:YES];
+        
+        y = ctx.popContentSize.height - cornerRadius;
+//        [borderPath addLineToPoint:CGPointMake(x, y)];
+        
+        [borderPath addArcWithCenter:CGPointMake(x, y) radius:cornerRadius - halfBorderWidth startAngle:0 endAngle:M_PI_2 clockwise:YES];
+        
+        x = CGRectGetMaxX(ctx.arrowFrame);
+        y = ctx.popContentSize.height - halfBorderWidth;
+        [borderPath addLineToPoint:CGPointMake(x, y)];
+    }
+    else if (ctx.arrowDirection == YZHUIPopViewArrowDirectionRight) {
+        x = ctx.popContentSize.width - halfBorderWidth;
+        y = ctx.arrowFrame.origin.y + arrowBaseSize.width;
+        [borderPath moveToPoint:CGPointMake(x, y)];
+        
+        y = ctx.popContentSize.height - cornerRadius;
+        [borderPath addLineToPoint:CGPointMake(x, y)];
+        
+        x = ctx.popContentSize.width - cornerRadius;
+        y = ctx.popContentSize.height - cornerRadius;
+        [borderPath addArcWithCenter:CGPointMake(x, y) radius:cornerRadius - halfBorderWidth startAngle:0 endAngle:M_PI_2 clockwise:YES];
+        
+        x = cornerRadius;
+//        y = ctx.popContentSize.height - halfBorderWidth;
+//        [borderPath addLineToPoint:CGPointMake(x, y)];
+        
+        y = ctx.popContentSize.height - cornerRadius;
+        [borderPath addArcWithCenter:CGPointMake(x, y) radius:cornerRadius - halfBorderWidth startAngle:M_PI_2 endAngle:M_PI clockwise:YES];
+        
+//        x = cornerRadius;
+//        y = cornerRadius;
+//        [borderPath addLineToPoint:CGPointMake(x, y)];
+        
+        y = cornerRadius;
+        [borderPath addArcWithCenter:CGPointMake(x, y) radius:cornerRadius - halfBorderWidth startAngle:M_PI endAngle:-M_PI_2 clockwise:YES];
+        
+        x = ctx.popContentSize.width - cornerRadius;
+        [borderPath addArcWithCenter:CGPointMake(x, y) radius:cornerRadius - halfBorderWidth startAngle:-M_PI_2 endAngle:0 clockwise:YES];
+        
+        x = ctx.popContentSize.width - halfBorderWidth;
+        y = ctx.arrowFrame.origin.y;
+        [borderPath addLineToPoint:CGPointMake(x, y)];
+    }
+    return borderPath;
+}
+
+-(void)_updatePopContentView:(YZHPopActionContext*)ctx isInner:(BOOL)isInner
 {
     if (ctx == nil || ctx.arrowDirection == YZHUIPopViewArrowDirectionAny) {
         return;
     }
     
-    self.frame = ctx.popViewFrame;
-    self.effectView.frame = self.bounds;
-    self.popContentView.frame = self.bounds;
+    CGFloat contentCornerRadius = ctx.contentCornerRadius;
+    if (isInner) {
+        self.innerContentView.frame = ctx.popViewFrame;
+        self.effectView.frame = self.innerContentView.frame;
+    }
+    else {
+        self.frame = ctx.popViewFrame;
+        self.effectView.frame = self.bounds;
+        self.innerContentView.frame = self.bounds;
+        self.innerContentView.backgroundColor = self.innerBackgroundColor;
+    }
     
     CGRect contentViewFrame = CGRectZero;
-    CGSize arrowBaseSize = self.arrowCtx.baseSize;
+    
+    CGSize arrowBaseSize = ctx.arrowCtx.baseSize;
+    
     CGAffineTransform arrowT = CGAffineTransformIdentity;
+    
+    UIBezierPath *borderPath = nil;
+    
+    UIBezierPath *arrowPath = [ctx.arrowCtx bezierPathForArrowDirection:ctx.arrowDirection];
     
     if (ctx.arrowDirection == YZHUIPopViewArrowDirectionUp) {
         contentViewFrame = CGRectMake(0, arrowBaseSize.height, ctx.popContentSize.width, ctx.popContentSize.height);
         arrowT = CGAffineTransformMakeTranslation(ctx.arrowFrame.origin.x, 0);
+        
+        if (!isInner) {
+            borderPath = [self _getBorderPath:ctx borderWidth:self.borderWidth cornerRadius:contentCornerRadius arrowTransform:arrowT];
+        }
     }
     else if (ctx.arrowDirection == YZHUIPopViewArrowDirectionLeft) {
         contentViewFrame = CGRectMake(arrowBaseSize.height, 0, ctx.popContentSize.width, ctx.popContentSize.height);
         arrowT = CGAffineTransformMakeTranslation(0, ctx.arrowFrame.origin.y);
+        
+        if (!isInner) {
+            borderPath = [self _getBorderPath:ctx borderWidth:self.borderWidth cornerRadius:contentCornerRadius arrowTransform:arrowT];
+        }
     }
     else if (ctx.arrowDirection == YZHUIPopViewArrowDirectionDown) {
         contentViewFrame = CGRectMake(0, 0, ctx.popContentSize.width, ctx.popContentSize.height);
         arrowT = CGAffineTransformMakeTranslation(ctx.arrowFrame.origin.x, ctx.popContentSize.height);
+        
+        if (!isInner) {
+            borderPath = [self _getBorderPath:ctx borderWidth:self.borderWidth cornerRadius:contentCornerRadius arrowTransform:arrowT];
+        }
     }
     else if (ctx.arrowDirection == YZHUIPopViewArrowDirectionRight) {
         contentViewFrame = CGRectMake(0, 0, ctx.popContentSize.width, ctx.popContentSize.height);
         arrowT = CGAffineTransformMakeTranslation(ctx.popContentSize.width, ctx.arrowFrame.origin.y);
+        
+        if (!isInner) {
+            borderPath = [self _getBorderPath:ctx borderWidth:self.borderWidth cornerRadius:contentCornerRadius arrowTransform:arrowT];
+        }
     }
     
-    UIBezierPath *path = [UIBezierPath bezierPathWithRoundedRect:contentViewFrame cornerRadius:self.contentCornerRadius];
-    UIBezierPath *arrowPath = [self.arrowCtx bezierPathForArrowDirection:ctx.arrowDirection];
+    UIBezierPath *path = [UIBezierPath bezierPathWithRoundedRect:contentViewFrame cornerRadius:contentCornerRadius];
     [arrowPath applyTransform:arrowT];
-    
     [path appendPath:arrowPath];
-    
-    self.bezierPath = path;
     
     CAShapeLayer *mask = [CAShapeLayer layer];
     mask.path = path.CGPath;
-    self.layer.mask = mask;
     
-    self.tableView.frame = contentViewFrame;
-    self.collectionView.frame = contentViewFrame;
-    self.customContentView.frame = contentViewFrame;
+    if (isInner) {
+        self.innerContentView.layer.mask = mask;
+        
+        CAShapeLayer *effectLayerMask = [CAShapeLayer layer];
+        effectLayerMask.path = path.CGPath;
+        self.effectView.layer.mask = effectLayerMask;
+        
+        self.tableView.frame = contentViewFrame;
+        self.collectionView.frame = contentViewFrame;
+        self.customContentView.frame = contentViewFrame;
+    }
+    else {
+        self.layer.mask = mask;
+        
+        self.tableView.frame = contentViewFrame;
+        self.collectionView.frame = contentViewFrame;
+        self.customContentView.frame = contentViewFrame;
+        
+        if (self.borderWidth <= 0) {
+            return;
+        }
+        
+        self.borderLayer.frame = CGRectMake(0, 0,  ctx.popViewFrame.size.width, ctx.popViewFrame.size.height);
+        self.borderLayer.path = borderPath.CGPath;
+        self.borderLayer.lineWidth = self.borderWidth;
+        self.borderLayer.strokeColor = self.borderColor.CGColor;
+        self.borderLayer.fillColor = CLEAR_COLOR.CGColor;
+        
+        YZHPopActionContext *innerCtx = [self _getInnerCtxWithCtx:ctx borderWidth:self.borderWidth];
+        [self _updatePopContentView:innerCtx isInner:YES];
+    }
 }
 
 -(void)_layoutPopContentSubViews
@@ -922,7 +1261,9 @@ typedef NS_ENUM(NSInteger, NSPopActionType)
     
     self.arrowDirection = ctx.arrowDirection;
     
-    [self _updatePopcontentView:ctx];
+    ctx.arrowCtx = self.arrowCtx;
+    ctx.contentCornerRadius = self.contentCornerRadius;
+    [self _updatePopContentView:ctx isInner:NO];
 }
 
 -(void)_addToShowInView:(UIView*)showInView
@@ -964,11 +1305,6 @@ typedef NS_ENUM(NSInteger, NSPopActionType)
     }
     [self popViewShowInView:showInView animated:animated];
 }
-
-//-(UIBezierPath*)bezierPath
-//{
-//    return _bezierPath;
-//}
 
 -(void)dismiss
 {
