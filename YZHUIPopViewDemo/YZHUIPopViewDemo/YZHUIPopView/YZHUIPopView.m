@@ -88,20 +88,23 @@ typedef NS_ENUM(NSInteger, NSPopActionType)
 
 +(CGFloat)getBaseShiftWithBaseSize:(CGSize)baseSize topAngleRadian:(CGFloat)topAngleRadian
 {
+    if (topAngleRadian <= 0) {
+        return -1;
+    }
     CGFloat baseWidth = baseSize.width;
     CGFloat baseHeight = baseSize.height;
     
     CGFloat w = baseWidth/2;
     CGFloat h = baseHeight;
-    CGFloat topAngleMaxRadian = 2 * atan(w/h);
-    
-    if (topAngleRadian <= 0 || topAngleRadian > topAngleMaxRadian) {
-        return -1;
-    }
+//    CGFloat topAngleMaxRadian = 2 * atan(w/h);    
+//    if (topAngleRadian <= 0 || topAngleRadian > topAngleMaxRadian) {
+//        return -1;
+//    }
     
     CGFloat alphaAngleRadian = topAngleRadian/2;
     
     CGFloat baseShift = w - h * tan(alphaAngleRadian);
+    
     return baseShift;
 }
 
@@ -996,6 +999,9 @@ typedef NS_ENUM(NSInteger, NSPopActionType)
     CGFloat halfBorderWidth = borderWidth/2;
     
     UIBezierPath *arrowPath = [ctx.arrowCtx bezierPathForArrowDirection:ctx.arrowDirection];
+    if (arrowPath == nil) {
+        return nil;
+    }
     CGPathRef arrowCGPath = CGPathCreateCopyByStrokingPath(arrowPath.CGPath, NULL, borderWidth, kCGLineCapButt, kCGLineJoinMiter, 0);
     UIBezierPath *arrowBorderPath = [UIBezierPath bezierPathWithCGPath:arrowCGPath];
     [arrowBorderPath applyTransform:arrowTransform];

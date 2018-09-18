@@ -55,10 +55,11 @@
     
 //    popView.arrowCtx.arrowArcRadius = 0;
     
-    popView.arrowCtx.baseSize = CGSizeMake(30, 15);
-    popView.arrowCtx.arrowRadian = M_PI_2;
-    popView.arrowCtx.arrowArcRadius = 0;
-//    popView.arrowCtx = [[YZHPopArrowContext alloc] initWithBaseHeight:<#(CGFloat)#> baseShift:<#(CGFloat)#> arrowRadian:<#(CGFloat)#> arrowArcRadius:<#(CGFloat)#>]
+//    popView.arrowCtx.baseSize = CGSizeMake(30, 15);
+//    popView.arrowCtx.arrowRadian = M_PI_2;
+//    popView.arrowCtx.arrowArcRadius = 0;
+    
+    popView.arrowCtx = [[YZHPopArrowContext alloc] initWithBaseHeight:16 baseShift:0 arrowRadian:DEGREES_TO_RADIANS(120) arrowArcRadius:0];
     
     popView.delegate = self;
     [popView popViewShow:YES];
