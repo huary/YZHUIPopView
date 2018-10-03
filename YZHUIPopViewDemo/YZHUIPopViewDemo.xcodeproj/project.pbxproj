@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		1C16DBAB2146239100098D7E /* YZHUIPopCollectionViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 1C16DBAA2146239100098D7E /* YZHUIPopCollectionViewCell.m */; };
+		1C540A28215D1A15008A4EC0 /* PopViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 1C540A27215D1A14008A4EC0 /* PopViewController.m */; };
 		1C7FAE4F213396CB00D71FC5 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 1C7FAE4E213396CB00D71FC5 /* AppDelegate.m */; };
 		1C7FAE52213396CB00D71FC5 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 1C7FAE51213396CB00D71FC5 /* ViewController.m */; };
 		1C7FAE55213396CB00D71FC5 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 1C7FAE53213396CB00D71FC5 /* Main.storyboard */; };
@@ -22,6 +23,7 @@
 		1C16DBA92146239100098D7E /* YZHUIPopCollectionViewCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = YZHUIPopCollectionViewCell.h; sourceTree = "<group>"; };
 		1C16DBAA2146239100098D7E /* YZHUIPopCollectionViewCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = YZHUIPopCollectionViewCell.m; sourceTree = "<group>"; };
 		1C16DBAF21463DBC00098D7E /* YZHUIPopCellProtocol.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = YZHUIPopCellProtocol.h; sourceTree = "<group>"; };
+		1C540A27215D1A14008A4EC0 /* PopViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PopViewController.m; sourceTree = "<group>"; };
 		1C7FAE4A213396CB00D71FC5 /* YZHUIPopViewDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = YZHUIPopViewDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1C7FAE4D213396CB00D71FC5 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		1C7FAE4E213396CB00D71FC5 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -38,6 +40,7 @@
 		1C7FAE6821339EBA00D71FC5 /* PrefixHeader.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PrefixHeader.pch; sourceTree = "<group>"; };
 		1C7FAE6C2133ABF100D71FC5 /* YZHUIPopTableViewCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = YZHUIPopTableViewCell.h; sourceTree = "<group>"; };
 		1C7FAE6D2133ABF100D71FC5 /* YZHUIPopTableViewCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = YZHUIPopTableViewCell.m; sourceTree = "<group>"; };
+		1C9A7CD3215B2AB20010AD5A /* PopViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PopViewController.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -70,18 +73,20 @@
 		1C7FAE4C213396CB00D71FC5 /* YZHUIPopViewDemo */ = {
 			isa = PBXGroup;
 			children = (
-				1C7FAE6721339EBA00D71FC5 /* Macro.h */,
-				1C7FAE6821339EBA00D71FC5 /* PrefixHeader.pch */,
-				1C7FAE63213396F200D71FC5 /* YZHUIPopView */,
 				1C7FAE4D213396CB00D71FC5 /* AppDelegate.h */,
 				1C7FAE4E213396CB00D71FC5 /* AppDelegate.m */,
+				1C7FAE56213396CB00D71FC5 /* Assets.xcassets */,
+				1C7FAE5B213396CB00D71FC5 /* Info.plist */,
+				1C7FAE58213396CB00D71FC5 /* LaunchScreen.storyboard */,
+				1C7FAE6721339EBA00D71FC5 /* Macro.h */,
+				1C7FAE5C213396CB00D71FC5 /* main.m */,
+				1C7FAE53213396CB00D71FC5 /* Main.storyboard */,
+				1C9A7CD3215B2AB20010AD5A /* PopViewController.h */,
+				1C540A27215D1A14008A4EC0 /* PopViewController.m */,
+				1C7FAE6821339EBA00D71FC5 /* PrefixHeader.pch */,
 				1C7FAE50213396CB00D71FC5 /* ViewController.h */,
 				1C7FAE51213396CB00D71FC5 /* ViewController.m */,
-				1C7FAE53213396CB00D71FC5 /* Main.storyboard */,
-				1C7FAE56213396CB00D71FC5 /* Assets.xcassets */,
-				1C7FAE58213396CB00D71FC5 /* LaunchScreen.storyboard */,
-				1C7FAE5B213396CB00D71FC5 /* Info.plist */,
-				1C7FAE5C213396CB00D71FC5 /* main.m */,
+				1C7FAE63213396F200D71FC5 /* YZHUIPopView */,
 			);
 			path = YZHUIPopViewDemo;
 			sourceTree = "<group>";
@@ -175,6 +180,7 @@
 				1C7FAE662133971500D71FC5 /* YZHUIPopView.m in Sources */,
 				1C7FAE52213396CB00D71FC5 /* ViewController.m in Sources */,
 				1C7FAE5D213396CB00D71FC5 /* main.m in Sources */,
+				1C540A28215D1A15008A4EC0 /* PopViewController.m in Sources */,
 				1C7FAE4F213396CB00D71FC5 /* AppDelegate.m in Sources */,
 				1C7FAE6E2133ABF100D71FC5 /* YZHUIPopTableViewCell.m in Sources */,
 			);

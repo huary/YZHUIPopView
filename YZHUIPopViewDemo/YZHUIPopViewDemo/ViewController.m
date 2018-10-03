@@ -8,6 +8,7 @@
 
 #import "ViewController.h"
 #import "YZHUIPopView.h"
+#import "PopViewController.h"
 
 @interface ViewController ()<YZHUIPopViewDelegate>
 
@@ -24,24 +25,55 @@
     [self _setupChildView];
 }
 
+-(UIButton*)_createButtonWithTitle:(NSString*)title frame:(CGRect)frame tag:(NSInteger)tag
+{
+    UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
+    button.tag = tag;
+    button.frame = frame;
+    button.backgroundColor = PURPLE_COLOR;
+    [button setTitle:title forState:UIControlStateNormal];
+    [button addTarget:self action:@selector(_action:) forControlEvents:UIControlEventTouchUpInside];
+    return button;
+}
+
 -(void)_setupChildView
 {
-    CGFloat w = 200;
-    CGFloat h = 80;
-    CGFloat x = (SCREEN_WIDTH - w)/2;//SCREEN_WIDTH - 100;//(SCREEN_WIDTH - w)/2;
-    CGFloat y = 100;//600;
-    self.button = [UIButton buttonWithType:UIButtonTypeCustom];
-    self.button.frame = CGRectMake(x, y, w, h);
-    self.button.backgroundColor = PURPLE_COLOR;
-    [self.button addTarget:self action:@selector(_action:) forControlEvents:UIControlEventTouchUpInside];
-    [self.view addSubview:self.button];
+//    CGFloat w = 200;
+//    CGFloat h = 80;
+//    CGFloat x = (SCREEN_WIDTH - w)/2;//SCREEN_WIDTH - 100;//(SCREEN_WIDTH - w)/2;
+//    CGFloat y = 100;//600;
+//    self.button = [UIButton buttonWithType:UIButtonTypeCustom];
+//    self.button.frame = CGRectMake(x, y, w, h);
+//    self.button.backgroundColor = PURPLE_COLOR;
+//    [self.button addTarget:self action:@selector(_action:) forControlEvents:UIControlEventTouchUpInside];
+//    [self.view addSubview:self.button];
+//
+//    self.view.backgroundColor = ORANGE_COLOR;
     
-    self.view.backgroundColor = ORANGE_COLOR;
+    CGFloat w = 300;
+    CGFloat h = 60;
+    CGFloat x = (SCREEN_WIDTH - w)/2;
+    CGFloat y = 100;
+    UIButton *btn = [self _createButtonWithTitle:@"TableViewType" frame:CGRectMake(x, y, w, h) tag:YZHUIPopViewContentTypeTableView];
+    [self.view addSubview:btn];
 
+
+    y = 200;
+    btn = [self _createButtonWithTitle:@"CollectionViewType" frame:CGRectMake(x, y, w, h) tag:YZHUIPopViewContentTypeCollectionView];
+    [self.view addSubview:btn];
+    
+    y = 300;
+    btn = [self _createButtonWithTitle:@"CustomViewType" frame:CGRectMake(x, y, w, h) tag:YZHUIPopViewContentTypeCustom];
+    [self.view addSubview:btn];
 }
 
 -(void)_action:(UIButton*)sender
 {
+    PopViewController *popVC = [[PopViewController alloc] init];
+    popVC.type = sender.tag;
+    [self presentViewController:popVC animated:YES completion:nil];
+    return;
+    
     CGSize size = CGSizeMake(200, 600);
     YZHUIPopView *popView = [[YZHUIPopView alloc] initWithPopContentSize:size fromOverView:sender showInView:nil];
 //    popView.contentType = YZHUIPopViewContentTypeTableView;
@@ -59,7 +91,7 @@
 //    popView.arrowCtx.arrowRadian = M_PI_2;
 //    popView.arrowCtx.arrowArcRadius = 0;
     
-    popView.arrowCtx = [[YZHPopArrowContext alloc] initWithBaseHeight:16 baseShift:0 arrowRadian:DEGREES_TO_RADIANS(120) arrowArcRadius:0];
+    popView.arrowCtx = [[YZHPopArrowContext alloc] initWithBaseHeight:16 baseShift:0 arrowRadian:DEGREES_TO_RADIANS(90) arrowArcRadius:0];
     
     popView.delegate = self;
     [popView popViewShow:YES];

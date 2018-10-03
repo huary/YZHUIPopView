@@ -11,8 +11,4 @@
 
 @interface YZHUIPopTableViewCell : UITableViewCell <YZHUIPopCellProtocol>
 
-//-(UIView*)cellSubContentView;
-//
-//-(void)addCellSubContentView:(UIView*)cellSubContentView;
-
 @end
