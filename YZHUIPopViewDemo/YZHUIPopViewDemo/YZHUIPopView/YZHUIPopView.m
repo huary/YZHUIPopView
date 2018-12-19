@@ -1490,10 +1490,10 @@ POP_ACTION_END:
     return YES;
 }
 
--(void)_layoutPopContentSubViews
+-(YZHPopActionContext*)_layoutPopContentSubViews
 {
     if (![self _checkCanLayoutPopContentSubViews]) {
-        return;
+        return nil;
     }
     if (self.arrowDirection != YZHUIPopViewArrowDirectionAny) {
         self.arrowDirectionPriorityOrder = @[@(self.arrowDirection)];
@@ -1511,6 +1511,7 @@ POP_ACTION_END:
     ctx.arrowCtx = self.arrowCtx;
     ctx.contentCornerRadius = self.contentCornerRadius;
     [self _updatePopContentView:ctx isInner:NO];
+    return ctx;
 }
 
 -(void)_addToShowInView:(UIView*)showInView
@@ -1525,6 +1526,48 @@ POP_ACTION_END:
     [showInView addSubview:self];
 }
 
+-(CGPoint)_getShowAnchorPointForActionContext:(YZHPopActionContext*)ctx
+{
+    CGFloat x = 0.5;
+    CGFloat y = 0.5;
+    if (ctx.arrowDirection == YZHUIPopViewArrowDirectionUp) {
+        y = 0.0;
+        CGFloat w = CGRectGetWidth(ctx.popViewFrame);
+        if (w > 0) {
+            x = CGRectGetMidX(ctx.arrowFrame)/w;
+        }
+    }
+    else if (ctx.arrowDirection == YZHUIPopViewArrowDirectionLeft) {
+        x = 0.0;
+        CGFloat h = CGRectGetHeight(ctx.popViewFrame);
+        if (h > 0) {
+            y = CGRectGetMidY(ctx.arrowFrame)/h;
+        }
+    }
+    else if (ctx.arrowDirection == YZHUIPopViewArrowDirectionDown) {
+        y = 1.0;
+        CGFloat w = CGRectGetWidth(ctx.popViewFrame);
+        if (w > 0) {
+            x = CGRectGetMidX(ctx.arrowFrame)/w;
+        }
+    }
+    else if (ctx.arrowDirection == YZHUIPopViewArrowDirectionRight) {
+        x = 1.0;
+        CGFloat h = CGRectGetHeight(ctx.popViewFrame);
+        if (h > 0) {
+            y = CGRectGetMidY(ctx.arrowFrame)/h;
+        }
+    }
+    return CGPointMake(x, y);
+}
+
+-(void)_changeAnchorPoint:(CGPoint)anchorPoint
+{
+    CGRect frame = self.frame;
+    self.layer.anchorPoint = anchorPoint;
+    self.frame = frame;
+}
+
 -(void)popViewShow:(BOOL)animated
 {
     [self popViewShowInView:self.showInView animated:animated];
@@ -1533,9 +1576,10 @@ POP_ACTION_END:
 -(void)popViewShowInView:(UIView*)showInView animated:(BOOL)animated
 {
     [self _addToShowInView:showInView];
-    [self _layoutPopContentSubViews];
+    YZHPopActionContext *ctx = [self _layoutPopContentSubViews];
     
     if (animated) {
+        [self _changeAnchorPoint:[self _getShowAnchorPointForActionContext:ctx]];
         self.alpha = 0.1;
         self.transform = CGAffineTransformMakeScale(0.1, 0.1);
         [UIView animateWithDuration:animationTimeInterval_s animations:^{
